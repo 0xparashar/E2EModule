@@ -5,10 +5,10 @@
  */
 package com.parashar.e2e.dto;
 
-import javax.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.ToString;
+import org.springframework.lang.Nullable;
 
 /**
  *
@@ -16,15 +16,9 @@ import lombok.ToString;
  */
 @ToString(includeFieldNames=true)
 @Data
-@AllArgsConstructor
-public class HKDFInput {
-    @NotNull
-    private String sharedSecret;
-    
-    @NotNull
-    private String remoteRandomNonce;
-    
-    @NotNull
-    private String ourRandomNonce;
-        
+public class SerializedNonce {
+    @NonNull
+    final private String nonce;
+    @Nullable
+    ErrorInfo errorInfo;
 }

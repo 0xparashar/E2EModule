@@ -31,30 +31,22 @@ public class HKDFService {
     private Hkdf hkdf = Hkdf.usingHash(hash);
            
     
-    public String getHKDFSessionKeyForEncryption(HKDFInput hkdfInput){
+    public String getHKDFSessionKey(HKDFInput hkdfInput){
         
-        String partialKey = getHKDFKey(hkdfInput.getOurRandom(), hkdfInput.getSharedSecret());
-        
-        String sessionKey = getHKDFKey(hkdfInput.getRemoteRandom(), partialKey);
-        
-        return sessionKey;
+        byte[] ourNonce = Base64.getDecoder().decode(hkdfInput.getOurRandomNonce());
+        byte[] remoteNonce = Base64.getDecoder().decode(hkdfInput.getRemoteRandomNonce());
+        byte[] salt = xor(ourNonce, remoteNonce);
+    
+        return getHKDFKey(salt, hkdfInput.getSharedSecret());
     }
 
-        
-    public String getHKDFSessionKeyForDecryption(HKDFInput hkdfInput){
-        
-        String partialKey = getHKDFKey(hkdfInput.getRemoteRandom(), hkdfInput.getSharedSecret());
-        
-        String sessionKey = getHKDFKey(hkdfInput.getOurRandom(), partialKey);
-        
-        return sessionKey;
-    }
+     
     
-    public String getHKDFKey(int keyOne, String keyTwo){
+    public String getHKDFKey(byte[] salt, String keyTwo){
         
-        SecretKey salt = new SecretKeySpec(intToBytes(keyOne), hash.getAlgorithm()); 
+        SecretKey saltKey = new SecretKeySpec(salt, hash.getAlgorithm()); 
         
-        SecretKey extractedKey = hkdf.extract(salt, keyTwo.getBytes(StandardCharsets.UTF_8));
+        SecretKey extractedKey = hkdf.extract(saltKey, keyTwo.getBytes(StandardCharsets.UTF_8));
         
         byte[] expandedBytes = hkdf.expand(extractedKey, "".getBytes(), hash.getByteLength());
         final PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(expandedBytes);
@@ -71,5 +63,14 @@ public class HKDFService {
         bb.putInt(i); 
         return bb.array();
     }
+    
+    private byte[] xor(byte[] a, byte[] key) {
+        byte[] out = new byte[a.length];
+        for (int i = 0; i < a.length; i++) {
+            out[i] = (byte) (a[i] ^ key[i%key.length]);
+        }
+        return out;
+    }
+
     
 }

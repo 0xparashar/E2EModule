@@ -9,11 +9,11 @@ import com.parashar.e2e.dto.DecryptionSpec;
 import com.parashar.e2e.dto.EncryptionSpec;
 import com.parashar.e2e.dto.ErrorInfo;
 import com.parashar.e2e.dto.HKDFInput;
-import com.parashar.e2e.dto.Hash;
 import com.parashar.e2e.dto.SecretKeySpec;
 import com.parashar.e2e.dto.SerializedDecryptedData;
 import com.parashar.e2e.dto.SerializedEncryptedData;
 import com.parashar.e2e.dto.SerializedKeyPair;
+import com.parashar.e2e.dto.SerializedNonce;
 import com.parashar.e2e.dto.SerializedSecretKey;
 import com.parashar.e2e.service.AESService;
 import com.parashar.e2e.service.DHService;
@@ -32,7 +32,9 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 import java.util.logging.Level;
+import keywhiz.hkdf.Hash;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -114,38 +116,31 @@ public class ECCController {
     @GetMapping(value = "/getRandomNonce", produces = "application/json")
     @ApiResponses({ @ApiResponse(code = 201, message = " successfully generated random nonce"),
 			@ApiResponse(code = 500, message = " error generating random nonce") })
-    public int getRandomNonce(){
+    public SerializedNonce getRandomNonce(){
         SecureRandom secRan = new SecureRandom(); 
         byte[] ranBytes = new byte[Hash.SHA256.getByteLength()];
         secRan.nextBytes(ranBytes);
         
-        int number = ByteBuffer.wrap(ranBytes).getInt();
-        ByteBuffer newByteBuffer = ByteBuffer.allocate(Hash.SHA256.getByteLength());
-        newByteBuffer.putInt(number);
+//        int number = ByteBuffer.wrap(ranBytes).getInt();
+//        ByteBuffer newByteBuffer = ByteBuffer.allocate(Hash.SHA256.getByteLength());
+//        newByteBuffer.putInt(number);
         
-        return ByteBuffer.wrap(newByteBuffer.array()).getInt();
+        SerializedNonce serializedNonce = new SerializedNonce(new String(Base64.getEncoder().encode(ranBytes)));
+        
+        return serializedNonce;
     }
     
    
-    @ApiOperation(value = "Generate the session key using sharedSecretKey, rand(u) and rand(p) while doing encryption")
-    @PostMapping(value = "/generateSessionKeyForEncryption", produces = "application/json")
+    @ApiOperation(value = "Generate the session key using sharedSecretKey, rand(u) and rand(p)")
+    @PostMapping(value = "/generateSessionKey", produces = "application/json")
     @ApiResponses({ @ApiResponse(code = 201, message = " successfully generated session key"),
 			@ApiResponse(code = 500, message = " error occured while deriving session secret key") })
     public SerializedSecretKey generateSessionKeyForEncryption(@RequestBody HKDFInput hkdfInput){
         
-        return new SerializedSecretKey(hKDFService.getHKDFSessionKeyForEncryption(hkdfInput));
+        return new SerializedSecretKey(hKDFService.getHKDFSessionKey(hkdfInput));
     
     }
 
-    @ApiOperation(value = "Generate the session key using sharedSecretKey, rand(u) and rand(p) while doing decryption")
-    @PostMapping(value = "/generateSessionKeyForDecryption", produces = "application/json")
-    @ApiResponses({ @ApiResponse(code = 201, message = " successfully generated session key"),
-			@ApiResponse(code = 500, message = " error occured while deriving session secret key") })
-    public SerializedSecretKey generateSessionKeyForDecryption(@RequestBody HKDFInput hkdfInput){
-        
-        return new SerializedSecretKey(hKDFService.getHKDFSessionKeyForDecryption(hkdfInput));
-        
-    }
 
     @ApiOperation(value = "Encrypt Data")
     @PostMapping(value = "/encryptData", consumes = "application/json", produces = "application/json")
@@ -159,7 +154,7 @@ public class ECCController {
             return serializedEncryptedData;
         }
         catch(Exception ex){
-            log.log(Level.SEVERE, "Exception in decryption data "+ex);
+            log.log(Level.SEVERE, "Exception in decrypting data "+ex);
             SerializedEncryptedData errorData = new SerializedEncryptedData("");
             ErrorInfo error = new ErrorInfo();
             error.setErrorCode(ex.getClass().getName());
