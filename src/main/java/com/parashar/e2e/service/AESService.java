@@ -53,6 +53,12 @@ public class AESService {
         byte[] cipherMessage = byteBuffer.array();
         return Base64.getEncoder().encodeToString(cipherMessage);
     }
+    
+    
+        
+    public String encryptData(String sessionKey, String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
+        return encryptData(new EncryptionSpec(data, sessionKey));
+    }
 
     public String decryptData(DecryptionSpec decryptionSpec) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
         
@@ -77,4 +83,11 @@ public class AESService {
 
         return new String(plainText);
     }
+    
+    
+    public String decryptData(String encryptedData, String sessionKey) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
+        
+        return decryptData(new DecryptionSpec(encryptedData, sessionKey));
+    }    
+    
 }

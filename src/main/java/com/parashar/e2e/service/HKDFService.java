@@ -64,7 +64,7 @@ public class HKDFService {
         return bb.array();
     }
     
-    private byte[] xor(byte[] a, byte[] key) {
+    public byte[] xor(byte[] a, byte[] key) {
         byte[] out = new byte[a.length];
         for (int i = 0; i < a.length; i++) {
             out[i] = (byte) (a[i] ^ key[i%key.length]);

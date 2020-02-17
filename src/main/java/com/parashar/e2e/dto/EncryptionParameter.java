@@ -17,10 +17,13 @@ import lombok.ToString;
 @ToString(includeFieldNames=true)
 @Data
 @AllArgsConstructor
-public class EncryptionSpec {
+public class EncryptionParameter {
+    
     @NotNull
-    private String xml;
+    private String remotePublicKey;
     @NotNull
-    private String sessionKey;
-   
+    private String remoteNonce;
+    @NotNull
+    private String data;
+    
 }

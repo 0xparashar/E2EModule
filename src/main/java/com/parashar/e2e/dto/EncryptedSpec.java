@@ -9,6 +9,7 @@ import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
+import org.springframework.lang.Nullable;
 
 /**
  *
@@ -17,10 +18,17 @@ import lombok.ToString;
 @ToString(includeFieldNames=true)
 @Data
 @AllArgsConstructor
-public class EncryptionSpec {
+public class EncryptedSpec{
+    
     @NotNull
-    private String xml;
+    private String publicKey;
     @NotNull
-    private String sessionKey;
-   
+    private String privateKey;
+    @NotNull
+    private String randomNonce;
+    @NotNull
+    private String encryptedData;
+    @Nullable
+    ErrorInfo errorInfo;   
+    
 }
