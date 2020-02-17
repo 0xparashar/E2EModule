@@ -21,7 +21,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import keywhiz.hkdf.Hash;
 import lombok.extern.java.Log;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +32,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class AESService {
 
-    private Hash hash = Hash.SHA256;
     private final String algorithm = "AES";
     
     
