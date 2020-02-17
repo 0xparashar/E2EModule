@@ -22,7 +22,6 @@ import java.util.logging.Level;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import keywhiz.hkdf.Hash;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -62,7 +61,7 @@ public class FIPService {
         
         
         SecureRandom secRan = new SecureRandom(); 
-        byte[] ourNonce = new byte[Hash.SHA256.getByteLength()];
+        byte[] ourNonce = new byte[32];
         secRan.nextBytes(ourNonce);
         String randomNonce = new String(Base64.getEncoder().encode(ourNonce));
         log.log(Level.INFO, "random nonce generated");
@@ -74,7 +73,7 @@ public class FIPService {
         String sessionKey = hkdfService.getHKDFKey(salt, secretKey);
         log.log(Level.INFO, "Derived session key");
         
-        String encryptedData = aesService.encryptData(sessionKey, encryptionParameter.getData());
+        String encryptedData = aesService.encryptData(sessionKey, encryptionParameter.getData(), Base64.getEncoder().encodeToString(salt));
         
         return new EncryptedSpec(keyPair.getPublicKey(), keyPair.getPrivateKey(), randomNonce, encryptedData, null);
     }

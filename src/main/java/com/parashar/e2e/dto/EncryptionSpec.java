@@ -22,5 +22,7 @@ public class EncryptionSpec {
     private String xml;
     @NotNull
     private String sessionKey;
+    @NotNull
+    private String xoredNonce;
    
 }

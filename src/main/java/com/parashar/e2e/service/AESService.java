@@ -34,46 +34,55 @@ public class AESService {
 
     private final String algorithm = "AES";
     
+    final int saltIVOffset = 20;
     
     public String encryptData(EncryptionSpec encryptionSpec) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
         SecretKey secretKey = new SecretKeySpec(Base64.getDecoder().decode(encryptionSpec.getSessionKey()), algorithm);
-        SecureRandom secureRandom = new SecureRandom();
         byte[] iv = new byte[12]; //NEVER REUSE THIS IV WITH SAME KEY
-        secureRandom.nextBytes(iv);
+        byte[] xoredNonce = Base64.getDecoder().decode(encryptionSpec.getXoredNonce());
+        //Copy only the last 12 bytes
+        System.arraycopy(xoredNonce, saltIVOffset, iv, 0, iv.length);
+        
         final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         GCMParameterSpec parameterSpec = new GCMParameterSpec(128, iv); //128 bit auth tag length
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, parameterSpec);
         byte[] cipherText = cipher.doFinal(encryptionSpec.getXml().getBytes(StandardCharsets.UTF_8));
-        ByteBuffer byteBuffer = ByteBuffer.allocate(4 + iv.length + cipherText.length);
-        byteBuffer.putInt(iv.length);
-        byteBuffer.put(iv);
-        byteBuffer.put(cipherText);
-        byte[] cipherMessage = byteBuffer.array();
-        return Base64.getEncoder().encodeToString(cipherMessage);
+//        ByteBuffer byteBuffer = ByteBuffer.allocate(4 + iv.length + cipherText.length);
+//        byteBuffer.putInt(iv.length);
+//        byteBuffer.put(iv);
+//        byteBuffer.put(cipherText);
+//        byte[] cipherMessage = byteBuffer.array();
+        return Base64.getEncoder().encodeToString(cipherText);
     }
     
     
         
-    public String encryptData(String sessionKey, String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
-        return encryptData(new EncryptionSpec(data, sessionKey));
+    public String encryptData(String sessionKey, String data, String xoredNonce) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
+        return encryptData(new EncryptionSpec(data, sessionKey, xoredNonce));
     }
 
     public String decryptData(DecryptionSpec decryptionSpec) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
         
         
-        ByteBuffer byteBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(decryptionSpec.getEncryptedData()));
+//        ByteBuffer byteBuffer = ByteBuffer.wrap(Base64.getDecoder().decode(decryptionSpec.getEncryptedData()));
         
         SecretKey secretKey = new SecretKeySpec(Base64.getDecoder().decode(decryptionSpec.getSessionKey()), algorithm);
+        byte[] xoredNonce = Base64.getDecoder().decode(decryptionSpec.getXoredNonce());
+
+        byte[] iv = new byte[12];
+        System.arraycopy(xoredNonce, saltIVOffset, iv, 0, iv.length);
         
-        int ivLength = byteBuffer.getInt();
-        if(ivLength < 12 || ivLength >= 16) { // check input parameter
-            throw new IllegalArgumentException("invalid iv length");
-        }
-        byte[] iv = new byte[ivLength];
-        byteBuffer.get(iv);
-        byte[] cipherText = new byte[byteBuffer.remaining()];
-        byteBuffer.get(cipherText);
+//        int ivLength = byteBuffer.getInt();
+//        if(ivLength < 12 || ivLength >= 16) { // check input parameter
+//            throw new IllegalArgumentException("invalid iv length");
+//        }
+//        byte[] iv = new byte[ivLength];
+//        byteBuffer.get(iv);
+//        byte[] cipherText = new byte[byteBuffer.remaining()];
+//        byteBuffer.get(cipherText);
         
+        byte[] cipherText = Base64.getDecoder().decode(decryptionSpec.getEncryptedData());
+
         final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         cipher.init(Cipher.DECRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));
         
@@ -83,9 +92,9 @@ public class AESService {
     }
     
     
-    public String decryptData(String encryptedData, String sessionKey) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
+    public String decryptData(String encryptedData, String sessionKey, String xoredNonce) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
         
-        return decryptData(new DecryptionSpec(encryptedData, sessionKey));
+        return decryptData(new DecryptionSpec(encryptedData, sessionKey, xoredNonce));
     }    
     
 }

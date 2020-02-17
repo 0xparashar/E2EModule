@@ -81,7 +81,7 @@ public class FIUService {
     
         String sessionKey = hkdfService.getHKDFKey(salt, secretKey);
 
-        String decryptedData = aesService.decryptData(decryptionParameter.getEncryptedData(), sessionKey);
+        String decryptedData = aesService.decryptData(decryptionParameter.getEncryptedData(), sessionKey, Base64.getEncoder().encodeToString(salt));
         
         return new SerializedDecryptedData(decryptedData);
     }

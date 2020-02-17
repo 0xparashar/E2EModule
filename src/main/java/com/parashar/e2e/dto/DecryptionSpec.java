@@ -22,22 +22,7 @@ public class DecryptionSpec {
     private String encryptedData;
     @NotNull
     private String sessionKey;
-    
-    public DecryptionSpec(){
-    }
-
-    /**
-     * @param encryptedData the encryptedData to set
-     */
-    public void setEncryptedData(String encryptedData) {
-        this.encryptedData = encryptedData;
-    }
-
-    /**
-     * @param sessionKey the sessionKey to set
-     */
-    public void setSessionKey(String sessionKey) {
-        this.sessionKey = sessionKey;
-    }
+    @NotNull
+    private String xoredNonce;
     
 }
