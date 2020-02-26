@@ -1,4 +1,4 @@
-# E2EModule
+# E2EModule ![Java CI](https://github.com/ankitiitb1069/E2EModule/workflows/Java%20CI/badge.svg?branch=master)
 Sahamati End to End Encryption Module
 
 Based on https://github.com/gsasikumar/forwardsecrecy
